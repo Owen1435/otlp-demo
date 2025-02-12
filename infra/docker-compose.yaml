@@ -1,0 +1,73 @@
+version: "3"
+
+services:
+  jaeger-demo-otlp:
+    image: jaegertracing/all-in-one
+    container_name: jaeger
+    restart: unless-stopped
+    ports:
+      - 4317:4317 # [jaeger-collector] accept OpenTelemetry Protocol (OTLP)
+      - 4318:4318 # [jaeger-collector] accept OpenTelemetry Protocol (OTLP)
+      - 16686:16686 # [jaeger-query] serve frontend
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_ZIPKIN_HTTP_PORT=:9411
+
+  postgres-demo-otlp:
+    container_name: postgres-demo-otlp
+    image: postgres:16.4
+    restart: always
+    ports:
+      - "5444:5432"
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - demo-otlp-network
+
+  kafka-demo-otlp:
+    container_name: kafka-demo-otlp
+    image: obsidiandynamics/kafka
+    restart: "no"
+    ports:
+      - "2181:2181"
+      - "9093:9093"
+    environment:
+      KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9093"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka-demo-otlp:29092,EXTERNAL://localhost:9093"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
+      KAFKA_RESTART_ATTEMPTS: "10"
+      KAFKA_RESTART_DELAY: "5"
+      ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
+
+  prometheus-demo-otlp:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    network_mode: host
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3333:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
+    network_mode: host
+
+networks:
+  demo-otlp-network:
+    driver: bridge
