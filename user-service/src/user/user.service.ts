@@ -32,7 +32,7 @@ export class UserService {
     user.name = (params.name || 'default') + Date.now();
 
     const newUser = await this.userRepository.save(user);
-    this.logger.log(`User created ${JSON.stringify(newUser)}`);
+    this.logger.log(`Created user ${JSON.stringify(newUser)}`);
 
     userCreatedCountMetric.add(1);
     await lastValueFrom(this.kafkaService.emit('user-created', newUser));

@@ -27,6 +27,7 @@ export const telemetryConfig: TTelemetryConfig = {
     EInstrumentationName.Amqp,
     EInstrumentationName.Grpc,
     EInstrumentationName.Kafka,
+    EInstrumentationName.Pino,
   ],
   sampling: {
     common: {

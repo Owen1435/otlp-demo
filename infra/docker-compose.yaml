@@ -34,7 +34,7 @@ services:
     image: obsidiandynamics/kafka
     restart: "no"
     ports:
-      - "2181:2181"
+      - "2182:2181"
       - "9093:9093"
     environment:
       KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9093"
@@ -67,6 +67,15 @@ services:
       - ./grafana-data:/var/lib/grafana
       - ./provisioning:/etc/grafana/provisioning
     network_mode: host
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+#    volumes:
+#      - ./loki-config.yml:/etc/loki/local-config.yml
+#    command: -config.file=/etc/loki/local-config.yml
 
 networks:
   demo-otlp-network:

@@ -31,7 +31,7 @@ export class AppService {
         .pipe(map((res) => res.data)),
     ).catch((error) => {
       throw new InternalServerErrorException(
-        `Handled error by service 2: ${error.message}`,
+        `Handled error by service 2: ${error.response.data.message || error.message}`,
       );
     });
   }
